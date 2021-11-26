@@ -15,9 +15,13 @@ act_space = dummy_env.action_space
 
 ray.init()
 config = dqn.DEFAULT_CONFIG.copy()
+# trainer settings
 config["num_gpus"] = 1
-config["num_workers"] = 16
-config[""]
+config["num_workers"] = 8
+config["num_envs_per_worker"] = 8
+# carefull this can render a lot of videos
+config["record_env"] = False
+# env configs
 config["env_config"] = {
                 "observation_type": "flat-51s",
                 "map_size": (15, 15),
@@ -29,20 +33,22 @@ config["env_config"] = {
                 "rewards": SimpleRewards()
             }
 config["framework"] = "torch"
-
+# model settings
 config["model"] = {
     "dim": 15,
     "no_final_linear": False,
     "conv_activation": "relu",
     "conv_filters": [[32, 5, 1], [32, 3, 2], [32, 3, 2], [32, 4, 1]]
 }
-
+# multi agent settings
 config["multiagent"] = {
     "policies": {
         "single_snake": (DQNTorchPolicy, obs_space, act_space, {})
     },
     "policy_mapping_fn": policy_mapping_fn
 }
+# set evaluation options
+config["evaluation_interval"] = 5
 
 trainer = DQNTrainer(config=config, env=BattlesnakeGym)
 
@@ -64,7 +70,7 @@ for i in range(1000):
 
 # ... you can load the h5-weights into your Trainer's Policy's ModelV2
 # (tf or torch) by doing:
-trainer.import_model("my_weights.h5")
+# trainer.import_model("my_weights.h5")
 # NOTE: In order for this to work, your (custom) model needs to implement
 # the `import_from_h5` method.
 # See https://github.com/ray-project/ray/blob/master/rllib/tests/test_model_imports.py
