@@ -8,30 +8,22 @@ from battlesnake_gym import BattlesnakeGym
 from battlesnake_gym.rewards import SimpleRewards
 
 from CustomVisionNet import VisionNetworkWithPooling
-from policies import CustomNetwork
+from policies import *
 from ray.rllib.models import ModelCatalog
 ModelCatalog.register_custom_model("VisionNetworkWithPooling", VisionNetworkWithPooling)
 ModelCatalog.register_custom_model("CustomNetwork", CustomNetwork)
+ModelCatalog.register_custom_model("CustomNetworkMax", CustomNetworkMax)
+ModelCatalog.register_custom_model("CustomNetworkDeeper", CustomNetworkDeeper)
+ModelCatalog.register_custom_model("CustomNetworkWider", CustomNetworkWider)
+ModelCatalog.register_custom_model("CustomNetworkWiderPool", CustomNetworkWiderPool)
+ModelCatalog.register_custom_model("CustomNetworkDeeperPool", CustomNetworkDeeperPool)
+
 
 
 def policy_mapping_fn(agent_id, *arg):
     return "single_snake"
 
-dummy_env = BattlesnakeGym()
-obs_space = dummy_env.observation_space
-act_space = dummy_env.action_space
-
-ray.init()
-config = ppo.DEFAULT_CONFIG.copy()
-
-# trainer settings
-config["num_gpus"] = 1
-config["num_workers"] = 1
-config["num_envs_per_worker"] = 1
-# carefull this can render a lot of videos
-config["record_env"] = False
-# env configs
-config["env_config"] = {
+env_config_dict = {
                 "observation_type": "flat-51s",
                 "map_size": (16, 16),
                 "number_of_snakes": 4, 
@@ -41,12 +33,27 @@ config["env_config"] = {
                 "initial_game_state": None,
                 "rewards": SimpleRewards()
             }
+dummy_env = BattlesnakeGym(config=env_config_dict)
+obs_space = dummy_env.observation_space
+act_space = dummy_env.action_space
+
+ray.init()
+config = ppo.DEFAULT_CONFIG.copy()
+
+# trainer settings
+config["num_gpus"] = 1
+config["num_workers"] = 8
+config["num_envs_per_worker"] = 8
+# carefull this can render a lot of videos
+config["record_env"] = False
+# env configs
+config["env_config"] = env_config_dict
 config["framework"] = "torch"
 # model settings
 
 config["model"] = {
     #"custom_model" : "VisionNetworkWithPooling",
-    "custom_model" : "CustomNetwork",
+    "custom_model" : "CustomNetworkDeeperPool",
     "dim": 16,
     "no_final_linear": False,
     "vf_share_layers": False,
@@ -73,7 +80,7 @@ trainer = PPOTrainer(config=config, env=BattlesnakeGym)
 
 # Can optionally call trainer.restore(path) to load a checkpoint.
 
-for i in range(1000):
+for i in range(10):
    # Perform one iteration of training the policy with PPO
    result = trainer.train()
    print(pretty_print(result))
