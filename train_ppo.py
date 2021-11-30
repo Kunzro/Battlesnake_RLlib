@@ -22,10 +22,10 @@ ModelCatalog.register_custom_model("CustomNetworkDeeperPool", CustomNetworkDeepe
 
 def policy_mapping_fn(agent_id, *arg):
     return "single_snake"
-
+map_size = 19
 env_config_dict = {
                 "observation_type": "flat-51s",
-                "map_size": (16, 16),
+                "map_size": (map_size, map_size),
                 "number_of_snakes": 4, 
                 "snake_spawn_locations": [],
                 "food_spawn_locations": [],
@@ -38,56 +38,56 @@ obs_space = dummy_env.observation_space
 act_space = dummy_env.action_space
 
 ray.init()
-config = ppo.DEFAULT_CONFIG.copy()
+def get_config(model):
+    config = ppo.DEFAULT_CONFIG.copy()
 
-# trainer settings
-config["num_gpus"] = 1
-config["num_workers"] = 8
-config["num_envs_per_worker"] = 8
-# carefull this can render a lot of videos
-config["record_env"] = False
-# env configs
-config["env_config"] = env_config_dict
-config["framework"] = "torch"
-# model settings
+    # trainer settings
+    config["num_gpus"] = 1
+    config["num_workers"] = 8
+    config["num_envs_per_worker"] = 8
+    # carefull this can render a lot of videos
+    config["record_env"] = False
+    # env configs
+    config["env_config"] = env_config_dict
+    config["framework"] = "torch"
+    # model settings
 
-config["model"] = {
-    #"custom_model" : "VisionNetworkWithPooling",
-    "custom_model" : "CustomNetworkDeeperPool",
-    "dim": 16,
-    "no_final_linear": False,
-    "vf_share_layers": False,
-    "conv_activation": "relu",
-    "conv_filters": [[16, [5,5], 1], [32, [4,4], 1]],
-    "post_fcnet_hiddens": [513, 514],
-    "post_fcnet_activation": "relu",
-    "custom_model_config": {
-    "post_fcnet_inputsize" : 512} #The size of the output after convolutions, calculate by hand.
-}
+    config["model"] = {
+        #"custom_model" : "VisionNetworkWithPooling",
+        "custom_model" : model,
+        "dim": map_size,
+    }
 
-# multi agent settings
-config["multiagent"] = {
-    "policies": {
-        "single_snake": (PPOTorchPolicy, obs_space, act_space, {})
-    },
-    "policy_mapping_fn": policy_mapping_fn
-}
-# set evaluation options
-config["evaluation_interval"] = 3000
+    # multi agent settings
+    config["multiagent"] = {
+        "policies": {
+            "single_snake": (PPOTorchPolicy, obs_space, act_space, {})
+        },
+        "policy_mapping_fn": policy_mapping_fn
+    }
+    # set evaluation options
+    config["evaluation_interval"] = 5
 
+networks = [(CustomNetwork, "CustomNetwork"), 
+            (CustomNetworkDeeper, "CustomNetworkDeeper"), 
+            (CustomNetworkWider, "CustomNetworkWider"),
+            (CustomNetworkMax, "CustomNetworkMax"),
+            (CustomNetworkAverage, "CustomNetworkAverage"),
+            (CustomNetworkDeeperPool, "CustomNetworkDeeperPool"),
+            (CustomNetworkWiderPool, "CustomNetworkWiderPool")]
 
-trainer = PPOTrainer(config=config, env=BattlesnakeGym)
+for network, networkName in networks:
+    trainer = PPOTrainer(config=get_config("CustomNetworkDeeper"), env=BattlesnakeGym)
+    # Can optionally call trainer.restore(path) to load a checkpoint.
 
-# Can optionally call trainer.restore(path) to load a checkpoint.
+    for i in range(2):
+        # Perform one iteration of training the policy with PPO
+        result = trainer.train()
+        print(pretty_print(result))
 
-for i in range(10):
-   # Perform one iteration of training the policy with PPO
-   result = trainer.train()
-   print(pretty_print(result))
-
-   if i % 100 == 0:
-       checkpoint = trainer.save()
-       print("checkpoint saved at", checkpoint)
+        if i % 100 == 0:
+            checkpoint = trainer.save()
+            print("checkpoint saved at", checkpoint)
 
 # Also, in case you have trained a model outside of ray/RLlib and have created
 # an h5-file with weight values in it, e.g.
