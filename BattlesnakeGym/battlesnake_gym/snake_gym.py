@@ -108,21 +108,25 @@ class BattlesnakeGym(MultiAgentEnv):
         Helper function to define the observation space given self.map_size, self.number_of_snakes
         and self.observation_type
         '''
+        if "compact" in self.observation_type:
+            num_layers = 3
+        else:
+            num_layers = self.number_of_snakes+1
         if "flat" in self.observation_type:
             observation_space = spaces.Box(low=0, high=5,
                                            shape=(self.map_size[0],
                                                   self.map_size[1],
-                                                  self.number_of_snakes+1),
+                                                  num_layers),
                                            dtype=np.int8)
         elif "bordered" in self.observation_type:
             if "max-bordered" in self.observation_type:
                 border_size = self.MAX_BORDER[0] - self.map_size[0]
             else:
                 border_size = 2
-            observation_space = spaces.Box(low=0, high=5,
+            observation_space = spaces.Box(low=-1, high=5,
                                            shape=(self.map_size[0]+border_size,
                                                   self.map_size[1]+border_size,
-                                                  self.number_of_snakes+1),
+                                                  num_layers),
                                            dtype=np.int8)
         return observation_space
 
