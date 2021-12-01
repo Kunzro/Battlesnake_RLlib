@@ -113,7 +113,7 @@ class BattlesnakeGym(MultiAgentEnv):
                                            shape=(self.map_size[0],
                                                   self.map_size[1],
                                                   self.number_of_snakes+1),
-                                           dtype=np.uint8)
+                                           dtype=np.int8)
         elif "bordered" in self.observation_type:
             if "max-bordered" in self.observation_type:
                 border_size = self.MAX_BORDER[0] - self.map_size[0]
@@ -123,7 +123,7 @@ class BattlesnakeGym(MultiAgentEnv):
                                            shape=(self.map_size[0]+border_size,
                                                   self.map_size[1]+border_size,
                                                   self.number_of_snakes+1),
-                                           dtype=np.uint8)
+                                           dtype=np.int8)
         return observation_space
 
     def initialise_game_state(self, game_state_dict):
@@ -457,10 +457,6 @@ class BattlesnakeGym(MultiAgentEnv):
             print("final json {}".format(self.get_json()))
             raise
         
-<<<<<<< HEAD
-=======
-        #snake_alive_dict["__all__"] = np.sum(~np.array(list(snake_alive_dict.values()))) <= 1
->>>>>>> 238a96723b1e4be8bcf1a65761ae758aa7d342e4
         snake_alive_dict["__all__"] = np.sum(np.logical_not(np.array(list(snake_alive_dict.values())))) <= 1
             
         return obs, reward, snake_alive_dict, snake_info
@@ -481,7 +477,7 @@ class BattlesnakeGym(MultiAgentEnv):
                 
             bordered_state_shape = (state.shape[0]+border_size, state.shape[1]+border_size,
                                     state.shape[2])
-            bordered_state = np.ones(shape=bordered_state_shape)*-1
+            bordered_state = np.ones(shape=bordered_state_shape, dtype=np.int8)*-1
             
             b = int(border_size/2)
             bordered_state[b:-b, b:-b,:] = state
@@ -491,30 +487,58 @@ class BattlesnakeGym(MultiAgentEnv):
         '''
         Helper function to generate the output observation.
         '''
-        if "flat" in self.observation_type:
-            observation = self._get_state()#.swapaxes(0, 2)
-        elif "bordered" in self.observation_type:
-            state = self._get_state()
+        if "compact" in self.observation_type:
+            if "flat" in self.observation_type:
+                observation = self._get_state()
+                snake_states = observation[:,:,1:]
+                observations = {}
+                idxs = np.arange(self.number_of_snakes)
+                for i in range(self.number_of_snakes):
+                    observations[i] = np.stack((observation[:,:,0], snake_states[:,:,i], np.sum(snake_states[:,:,idxs!=i], axis=-1, dtype=np.int8)), axis=-1)
+                return observations
+            elif "bordered" in self.observation_type:
+                observation = self._get_state()
 
-            if "max-bordered" in self.observation_type:
-                border_size = self.MAX_BORDER[0] - self.map_size[0]
-            else: 
-                border_size = 2
+                if "max-bordered" in self.observation_type:
+                    border_size = self.MAX_BORDER[0] - self.map_size[0]
+                else: 
+                    border_size = 2
+                bordered_state_shape = (observation.shape[0]+border_size, observation.shape[1]+border_size, 3)
+                b = int(border_size/2)
+
+                snake_states = observation[:,:,1:]
+                observations = {}
+                idxs = np.arange(self.number_of_snakes)
+                for i in range(self.number_of_snakes):
+                    bordered_state = np.ones(bordered_state_shape, dtype=np.int8)*(-1)
+                    bordered_state[b:-b, b:-b,:] = np.stack((observation[:,:,0], snake_states[:,:,i], np.sum(snake_states[:,:,idxs!=i], axis=-1, dtype=np.int8)), axis=-1)
+                    observations[i] = bordered_state
+                return observations
+        else:
+            if "flat" in self.observation_type:
+                observation = self._get_state()#.swapaxes(0, 2)
+            elif "bordered" in self.observation_type:
+                state = self._get_state()
+
+                if "max-bordered" in self.observation_type:
+                    border_size = self.MAX_BORDER[0] - self.map_size[0]
+                else: 
+                    border_size = 2
+                    
+                bordered_state_shape = (state.shape[0]+border_size, state.shape[1]+border_size,
+                                        state.shape[2])
+                bordered_state = np.ones(shape=bordered_state_shape, dtype=np.int8)*-1
                 
-            bordered_state_shape = (state.shape[0]+border_size, state.shape[1]+border_size,
-                                    state.shape[2])
-            bordered_state = np.ones(shape=bordered_state_shape)*-1
-            
-            b = int(border_size/2)
-            bordered_state[b:-b, b:-b,:] = state
-            observation = bordered_state#.swapaxes(0, 2)
-        observations = {}
-        for i in range(self.number_of_snakes):
-            positions = np.arange(self.number_of_snakes+1)
-            positions[1] = i+1
-            positions[i+1] = 1
-            observations[i] = observation[:,:,positions]
-        return observations
+                b = int(border_size/2)
+                bordered_state[b:-b, b:-b,:] = state
+                observation = bordered_state#.swapaxes(0, 2)
+            observations = {}
+            for i in range(self.number_of_snakes):
+                positions = np.arange(self.number_of_snakes+1)
+                positions[1] = i+1
+                positions[i+1] = 1
+                observations[i] = observation[:,:,positions]
+            return observations
 
     def _get_state(self):
         ''''
@@ -531,7 +555,7 @@ class BattlesnakeGym(MultiAgentEnv):
 
         depth_of_state = 1 + self.snakes.number_of_snakes
         state = np.zeros((self.map_size[0], self.map_size[1], depth_of_state),
-                         dtype=np.uint8)
+                         dtype=np.int8)
 
         # Include the postions of the food
         state[:, :, FOOD_INDEX] = self.food.get_food_map()

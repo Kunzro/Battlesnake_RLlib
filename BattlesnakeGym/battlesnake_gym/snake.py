@@ -260,9 +260,9 @@ class Snake:
             image of the position of this snake
         '''        
         if return_type == "Colour":
-            map_image = np.zeros((self.map_size[0], self.map_size[1], 3))
+            map_image = np.zeros((self.map_size[0], self.map_size[1], 3), dtype=np.uint8)
         else:
-            map_image = np.zeros((self.map_size[0], self.map_size[1]))
+            map_image = np.zeros((self.map_size[0], self.map_size[1]), dtype=np.int8)
 
         if not self._is_alive or self.is_head_outside_map():
             # To check if the snake is dead or not
@@ -427,7 +427,7 @@ class Snakes:
         '''
         map_image = np.zeros((self.map_size[0], self.map_size[1],
                               len(self.snakes)),
-                             dtype=np.uint8)
+                             dtype=np.int8)
         for i, snake in enumerate(self.snakes):
             if snake not in excluded_snakes:
                 map_image[:, :, i] = snake.get_snake_map(return_type="Numbered")
@@ -454,7 +454,7 @@ class Snakes:
         '''
         map_image = np.zeros((self.map_size[0], self.map_size[1],
                               len(self.snakes)),
-                             dtype=np.uint8)
+                             dtype=np.int8)
         for i, snake in enumerate(self.snakes):
             if snake not in excluded_snakes:
                 map_image[:, :, i] = snake.get_snake_map(return_type="Binary")
@@ -470,7 +470,7 @@ class Snakes:
         map_image: np.array(map_size[0], map_size[1], 3)
             The positions of the snakes are indicated by the colour of each snake
         '''
-        map_image = np.zeros((self.map_size[0], self.map_size[1], 3))
+        map_image = np.zeros((self.map_size[0], self.map_size[1], 3), dtype=np.uint8)
         for snake in self.snakes:
             map_image += snake.get_snake_map(return_type="Colour")
         return map_image
