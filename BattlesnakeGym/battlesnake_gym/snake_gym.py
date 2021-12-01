@@ -457,6 +457,10 @@ class BattlesnakeGym(MultiAgentEnv):
             print("final json {}".format(self.get_json()))
             raise
         
+<<<<<<< HEAD
+=======
+        #snake_alive_dict["__all__"] = np.sum(~np.array(list(snake_alive_dict.values()))) <= 1
+>>>>>>> 238a96723b1e4be8bcf1a65761ae758aa7d342e4
         snake_alive_dict["__all__"] = np.sum(np.logical_not(np.array(list(snake_alive_dict.values())))) <= 1
             
         return obs, reward, snake_alive_dict, snake_info
