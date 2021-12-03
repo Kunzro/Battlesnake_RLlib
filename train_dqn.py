@@ -1,6 +1,6 @@
 import ray
 import ray.rllib.agents.dqn as dqn
-from ray.tune.logger import pretty_print
+from ray.tune.logger import UnifiedLogger, pretty_print
 from ray.rllib.agents.dqn import DQNTrainer, DQNTorchPolicy
 from datetime import datetime
 
@@ -10,6 +10,7 @@ from ray.tune.utils.util import date_str
 
 from policies import *
 from ray.rllib.models import ModelCatalog
+import os
 
 ModelCatalog.register_custom_model("CustomNetwork", CustomNetwork)
 ModelCatalog.register_custom_model("CustomNetworkMax", CustomNetworkMax)
@@ -67,18 +68,18 @@ def get_config(model):
     }
     # set evaluation options
     config["evaluation_interval"] = 5
-    config["logger_config"] = {
-        "log_dir": "/home/sem21h18/test"
-    }
+    config["evaluation_num_episodes"] = 50
     return config
 
-networks = [(CustomNetwork, "CustomNetwork"), 
-            (CustomNetworkDeeper, "CustomNetworkDeeper"), 
-            (CustomNetworkWider, "CustomNetworkWider"),
-            (CustomNetworkMax, "CustomNetworkMax"),
-            (CustomNetworkAverage, "CustomNetworkAverage"),
-            (CustomNetworkDeeperPool, "CustomNetworkDeeperPool"),
-            (CustomNetworkWiderPool, "CustomNetworkWiderPool")]
+networks = [
+    (CustomNetwork, "CustomNetwork"), 
+#    (CustomNetworkDeeper, "CustomNetworkDeeper"), 
+#    (CustomNetworkWider, "CustomNetworkWider"),
+#    (CustomNetworkMax, "CustomNetworkMax"),
+#    (CustomNetworkAverage, "CustomNetworkAverage"),
+#    (CustomNetworkDeeperPool, "CustomNetworkDeeperPool"),
+#    (CustomNetworkWiderPool, "CustomNetworkWiderPool")
+    ]
 
 
 date_str = datetime.today().strftime("%Y-%m-%d")
@@ -86,17 +87,25 @@ print(torch.cuda.is_available())
 for i in range(torch.cuda.device_count()):
     print(torch.cuda.get_device_properties(i))
 for network, networkName in networks:
+
+    def logger_creator(config):
+        date_str = datetime.today().strftime("%Y-%m-%d")
+        logdir_prefix = "{}_{}_{}".format("DQN", networkName, date_str)
+        home_dir = os.path.expanduser("~/ray_results")
+        logdir = os.path.join(home_dir, logdir_prefix)
+        os.makedirs(logdir, exist_ok=True)
+        return UnifiedLogger(config, logdir, loggers=None)
+
     config=get_config(networkName)
-    trainer = DQNTrainer(config=config, env=BattlesnakeGym)
+    trainer = DQNTrainer(config=config, env=BattlesnakeGym, logger_creator=logger_creator)
     
     # Can optionally call trainer.restore(path) to load a checkpoint.
 
-    for i in range(1000):
+    for i in range(1001):
         # Perform one iteration of training the policy with PPO
         result = trainer.train()
         print(pretty_print(result))
 
-        #if i % 50 == 0:
-            #checkpoint = trainer.save(checkpoint_dir=f"/home/sem21h18/ray_results/DQN_{networkName}_{date_str}")
-            #torch.save(trainer.get_policy("single_snake").model, checkpoint + "-torch_model")
-            #print("checkpoint saved at", checkpoint)
+        if i % 50 == 0:
+            checkpoint = trainer.save()
+            print("checkpoint saved at", checkpoint)
