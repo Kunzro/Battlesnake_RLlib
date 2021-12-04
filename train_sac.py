@@ -95,14 +95,14 @@ for network, networkName in networks:
 
     def logger_creator(config):
         date_str = datetime.today().strftime("%Y-%m-%d")
-        logdir_prefix = "{}_{}_{}".format("DQN", networkName, date_str)
+        logdir_prefix = "{}_{}_{}".format("SAC", networkName, date_str)
         home_dir = os.path.expanduser("~/ray_results")
         logdir = os.path.join(home_dir, logdir_prefix)
         os.makedirs(logdir, exist_ok=True)
         return UnifiedLogger(config, logdir, loggers=None)
 
     config=get_config(networkName)
-    trainer = SACTrainer(config=config, env=BattlesnakeGym)
+    trainer = SACTrainer(config=config, env=BattlesnakeGym, logger_creator=logger_creator)
     
     # Can optionally call trainer.restore(path) to load a checkpoint.
 
