@@ -7,7 +7,6 @@ from datetime import datetime
 
 from battlesnake_gym import BattlesnakeGym
 from battlesnake_gym.rewards import SimpleRewards
-from ray.tune.utils.util import date_str
 
 from policies import *
 from ray.rllib.models import ModelCatalog
@@ -86,8 +85,6 @@ networks = [
 #    (CustomNetworkWiderPool, "CustomNetworkWiderPool")
     ]
 
-
-date_str = datetime.today().strftime("%Y-%m-%d")
 print(torch.cuda.is_available())
 for i in range(torch.cuda.device_count()):
     print(torch.cuda.get_device_properties(i))

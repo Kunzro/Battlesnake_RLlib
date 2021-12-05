@@ -6,7 +6,6 @@ from datetime import datetime
 
 from battlesnake_gym import BattlesnakeGym
 from battlesnake_gym.rewards import SimpleRewards
-from ray.tune.utils.util import date_str
 
 from policies import *
 from ray.rllib.models import ModelCatalog
@@ -82,7 +81,6 @@ networks = [
     ]
 
 
-date_str = datetime.today().strftime("%Y-%m-%d")
 print(torch.cuda.is_available())
 for i in range(torch.cuda.device_count()):
     print(torch.cuda.get_device_properties(i))
@@ -90,7 +88,7 @@ for network, networkName in networks:
 
     def logger_creator(config):
         date_str = datetime.today().strftime("%Y-%m-%d")
-        logdir_prefix = "{}_{}_{}".format("DQN", networkName, date_str)
+        logdir_prefix = "{}_{}_{}".format("PPO", networkName, date_str)
         home_dir = os.path.expanduser("~/ray_results")
         logdir = os.path.join(home_dir, logdir_prefix)
         os.makedirs(logdir, exist_ok=True)
