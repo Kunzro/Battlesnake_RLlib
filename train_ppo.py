@@ -105,5 +105,5 @@ for network, networkName in networks:
         print(pretty_print(result))
 
         if i % 50 == 0:
-            checkpoint = trainer.save(checkpoint_dir=f"/home/sem21h18/ray_results/PPO_{networkName}_{date_str}")
+            checkpoint = trainer.save()
             print("checkpoint saved at", checkpoint)
