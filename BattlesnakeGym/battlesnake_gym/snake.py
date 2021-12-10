@@ -326,6 +326,9 @@ class Snakes:
         self.map_size = map_size
         self.number_of_snakes = number_of_snakes
         self.snakes = self._initialise_snakes(number_of_snakes, snake_spawn_locations)
+        default_colours = [[255,0,0], [255,255,0], [0,255,0], [0,0,255], [255,0,255], [255,0,127]]
+        self.snake_colours = [default_colours[i] if i<len(default_colours) else list(np.random.choice(range(256), size=3))
+                                for i in range(len(self.snakes))]
 
     def _initialise_snakes(self, number_of_snakes, snake_spawn_locations):
         snakes = []
@@ -479,11 +482,9 @@ class Snakes:
         '''
         The colours of each snake are provided
         '''
-        default_colours = [[255,0,0], [255,255,0], [0,255,0], [0,0,255], [255,0,255], [255,0,127]]
-        snake_colours = [default_colours[i] if i<len(default_colours) else list(np.random.choice(range(256), size=3)) for i in range(len(self.snakes))]
         #for snake in self.snakes:
         #    snake_colours.append(snake.colour)
-        return snake_colours
+        return self.snake_colours
 
     def move_snakes(self, action):
         '''
