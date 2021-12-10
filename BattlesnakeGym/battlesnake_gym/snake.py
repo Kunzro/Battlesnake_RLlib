@@ -480,7 +480,7 @@ class Snakes:
         The colours of each snake are provided
         '''
         default_colours = [[255,0,0], [255,255,0], [0,255,0], [0,0,255], [255,0,255], [255,0,127]]
-        snake_colours = [default_colours[i] for i in range(len(self.snakes))]
+        snake_colours = [default_colours[i] if i<len(default_colours) else list(np.random.choice(range(256), size=3)) for i in range(len(self.snakes))]
         #for snake in self.snakes:
         #    snake_colours.append(snake.colour)
         return snake_colours
