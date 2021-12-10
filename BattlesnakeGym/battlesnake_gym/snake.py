@@ -479,9 +479,10 @@ class Snakes:
         '''
         The colours of each snake are provided
         '''
-        snake_colours = []
-        for snake in self.snakes:
-            snake_colours.append(snake.colour)
+        default_colours = [[255,0,0], [255,255,0], [0,255,0], [0,0,255], [255,0,255], [255,0,127]]
+        snake_colours = [default_colours[i] for i in range(len(self.snakes))]
+        #for snake in self.snakes:
+        #    snake_colours.append(snake.colour)
         return snake_colours
 
     def move_snakes(self, action):
