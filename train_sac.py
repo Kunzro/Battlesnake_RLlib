@@ -19,14 +19,16 @@ ModelCatalog.register_custom_model("CustomNetworkDeeper", CustomNetworkDeeper)
 ModelCatalog.register_custom_model("CustomNetworkWider", CustomNetworkWider)
 ModelCatalog.register_custom_model("CustomNetworkWiderPool", CustomNetworkWiderPool)
 ModelCatalog.register_custom_model("CustomNetworkDeeperPool", CustomNetworkDeeperPool)
+ModelCatalog.register_custom_model("CustomNetworkLarge", CustomNetworkLarge)
 
 
 
 def policy_mapping_fn(agent_id, *arg):
     return "single_snake"
 map_size = 19
+observation_type = "compact-flat-51s" # compact-bordered-51s or compact-flat-51s
 env_config_dict = {
-                "observation_type": "compact-flat-51s",
+                "observation_type": observation_type,
                 "map_size": (map_size, map_size),
                 "number_of_snakes": 4, 
                 "snake_spawn_locations": [],
@@ -56,11 +58,11 @@ def get_config(model):
 
     config["Q_model"] = {
         "custom_model": model,
-        "dim": map_size,
+        "observation_type": observation_type,
     }
     config["policy_model"] = {
         "custom_model": model,
-        "dim": map_size
+        "observation_type": observation_type,
     }
 
     # multi agent settings
@@ -76,13 +78,14 @@ def get_config(model):
     return config
 
 networks = [
-    (CustomNetwork, "CustomNetwork"), 
+#    (CustomNetwork, "CustomNetwork"), 
 #    (CustomNetworkDeeper, "CustomNetworkDeeper"), 
 #    (CustomNetworkWider, "CustomNetworkWider"),
 #    (CustomNetworkMax, "CustomNetworkMax"),
 #    (CustomNetworkAverage, "CustomNetworkAverage"),
 #    (CustomNetworkDeeperPool, "CustomNetworkDeeperPool"),
-#    (CustomNetworkWiderPool, "CustomNetworkWiderPool")
+#    (CustomNetworkWiderPool, "CustomNetworkWiderPool"),
+    (CustomNetworkLarge, "CustomNetworkLarge")
     ]
 
 print(torch.cuda.is_available())
@@ -92,7 +95,7 @@ for network, networkName in networks:
 
     def logger_creator(config):
         date_str = datetime.today().strftime("%Y-%m-%d")
-        logdir_prefix = "{}_{}_{}".format("SAC", networkName, date_str)
+        logdir_prefix = "{}_{}_{}_{}".format("SAC", observation_type, networkName, date_str)
         home_dir = os.path.expanduser("~/ray_results")
         logdir = os.path.join(home_dir, logdir_prefix)
         os.makedirs(logdir, exist_ok=True)
@@ -103,7 +106,7 @@ for network, networkName in networks:
     
     # Can optionally call trainer.restore(path) to load a checkpoint.
 
-    for i in range(1001):
+    for i in range(1301):
         # Perform one iteration of training the policy with SAC
         result = trainer.train()
         print(pretty_print(result))
