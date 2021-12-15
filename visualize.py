@@ -119,6 +119,8 @@ for i in range(20):
         env.render(mode="human")
         time.sleep(0)
         done = dones["__all__"]
+        if done:
+            time.sleep(2)
         if 0 in dones and dones[0]:
             print(f"SAC infos: {infos[0]}")
         if 1 in dones and dones[1]:
