@@ -112,9 +112,9 @@ for i in range(20):
         if 0 in actions_sac:
             actions[0] = actions_sac[0]
         if 1 in actions_ppo:
-            actions[1] = actions_sac[1]
+            actions[1] = actions_ppo[1]
         if 2 in actions_dqn:
-            actions[2] = actions_sac[2]
+            actions[2] = actions_dqn[2]
         obs, rewards, dones, infos = env.step(actions=actions)
         env.render(mode="human")
         time.sleep(0)
@@ -126,11 +126,11 @@ for i in range(20):
         if 2 in dones and dones[2]:
             print(f"DQN infos: {infos[2]}")
     winner = "no one"
-    if 0 in rewards:
+    if 0 in dones and not dones[0]:
         winner = "SAC"
-    if 1 in rewards:
+    if 1 in dones and not dones[1]:
         winner = "PPO"
-    if 2 in rewards:
+    if 2 in dones and not dones[2]:
         winner = "DQN"
     print(f"Game ended, winner: {winner}")
     print()
