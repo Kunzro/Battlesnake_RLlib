@@ -119,3 +119,18 @@ for i in range(20):
         env.render(mode="human")
         time.sleep(0)
         done = dones["__all__"]
+        if 0 in dones and dones[0]:
+            print(f"SAC infos: {infos[0]}")
+        if 1 in dones and dones[1]:
+            print(f"PPO infos: {infos[1]}")
+        if 2 in dones and dones[2]:
+            print(f"DQN infos: {infos[2]}")
+    winner = "no one"
+    if 0 in rewards:
+        winner = "SAC"
+    if 1 in rewards:
+        winner = "PPO"
+    if 2 in rewards:
+        winner = "DQN"
+    print(f"Game ended, winner: {winner}")
+    print()
